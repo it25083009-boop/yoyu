@@ -1,8 +1,8 @@
-// sw.js — オフラインでも開けるようにするための Service Worker
+﻿// sw.js — オフラインでも開けるようにするための Service Worker
 // ・アプリ本体（html / js / css / json）… ネット優先。つながらないときだけ保存済みを使う
 //   → 更新を配ったとき、利用者に必ず新しい版が届く（古い版に居座らない）
 // ・画像・フォント … 保存済み優先。無ければ取得して保存する
-const CACHE = "yoyu-aru-v3.6.4";
+const CACHE = "yoyu-aru-v3.6.5";
 const CORE = ["./", "./index.html", "./app.js", "./i18n.js", "./seasons.js", "./style.css", "./themes.css", "./manifest.json"];
 // 季節の背景（透明 SVG）はインストール時に先読みしない。
 // 実際に表示されたものだけ、下の cache-first 処理で保存する。
@@ -73,4 +73,5 @@ self.addEventListener("fetch", (event) => {
         })
     );
 });
+
 

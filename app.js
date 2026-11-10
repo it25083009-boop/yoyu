@@ -1,4 +1,4 @@
-// ================================================================
+﻿// ================================================================
 // ▼ app.js
 // ================================================================
 
@@ -3049,7 +3049,7 @@ const FURNITURE_CATALOG = [
 
 const PET_Z = 25;
 
-const APP_VERSION = "3.6.4";
+const APP_VERSION = "3.6.5";
 
 const PET_AWAKE_IMG = {
     neko: "assets/neko_awake.png",
@@ -7025,3 +7025,4 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (themeMedia.addListener) themeMedia.addListener(onChange);
     }
 });
+

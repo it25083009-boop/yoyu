@@ -1,4 +1,4 @@
-/* ============================================================================
+﻿/* ============================================================================
    i18n.js — 表示言語の切り替え（日本語 / 中文 / English）
    ----------------------------------------------------------------------------
    このアプリはもともと日本語の文言を直接 DOM に書いています。そこで、
@@ -111,7 +111,7 @@
         ["CSVを書き出す", "导出 CSV", "Export CSV"],
         ["CSVを読み込む", "导入 CSV", "Import CSV"],
         ["AI設定（レシート読み取り・ペットとの会話）", "AI 设置（收据读取・宠物对话）", "AI settings (receipts & pet chat)"],
-        ["レシートの自動入力は、APIキーなしでも1日に5回まで使えます（サーバー経由。画像は読み取りのためだけにサーバーと Google へ送られ、保存されません）。ペットとのAI会話も、APIキーなしで1日10回まで使えます。自分の APIキー を入れると、回数の制限なしで使えます。キーはこの端末にだけ保存され、このアプリのコードやGitHubには含まれません。使うときだけ、レシート画像や話しかけた内容がサーバーと Google へ送信されます。", "没有 API 密钥时，收据自动识别每天可使用 5 次（经由服务器。图片只为识别而发送给服务器和 Google，不会被保存）。宠物 AI 对话每天也可免费使用 10 次。填入自己的 API 密钥后可不限次数使用。密钥只保存在本机，不包含在本应用代码或 GitHub 中。只有使用时，收据图片或对话内容才会发送给服务器和 Google。", "Receipt scanning works up to 5 times a day without an API key (via our server; images are sent only for reading and are not stored). AI pet chat also works up to 10 messages a day without a key. Add your own key for unlimited use. The key stays on this device and is never included in the app code or GitHub. Images and messages are sent to our server and Google only when you use the feature."],
+        ["レシートの自動入力は、APIキーなしでも1日に1回まで使えます（サーバー経由。画像は読み取りのためだけにサーバーと Google へ送られ、保存されません）。ペットとのAI会話も、APIキーなしで1日5回まで使えます。自分の APIキー を入れると、回数の制限なしで使えます。キーはこの端末にだけ保存され、このアプリのコードやGitHubには含まれません。使うときだけ、レシート画像や話しかけた内容がサーバーと Google へ送信されます。", "没有 API 密钥时，收据自动识别每天可使用 1 次（经由服务器。图片只为识别而发送给服务器和 Google，不会被保存）。宠物 AI 对话每天也可免费使用 5 次。填入自己的 API 密钥后可不限次数使用。密钥只保存在本机，不包含在本应用代码或 GitHub 中。只有使用时，收据图片或对话内容才会发送给服务器和 Google。", "Receipt scanning works up to 1 time a day without an API key (via our server; images are sent only for reading and are not stored). AI pet chat also works up to 5 messages a day without a key. Add your own key for unlimited use. The key stays on this device and is never included in the app code or GitHub. Images and messages are sent to our server and Google only when you use the feature."],
         ["サービス", "服务", "Provider"],
         ["その他（OpenAI 互換のエンドポイント）", "其他（OpenAI 兼容端点）", "Other (OpenAI-compatible)"],
         ["APIキー", "API 密钥", "API key"],
@@ -996,3 +996,4 @@
         boot();
     }
 })();
+
