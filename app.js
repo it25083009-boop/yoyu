@@ -1,4 +1,4 @@
-﻿// ================================================================
+// ================================================================
 // ▼ app.js
 // ================================================================
 
@@ -38,28 +38,27 @@ function formatMonthLabel(monthKey) {
 
 // ---- 表示通貨（保存値は円のまま。記号だけ切り替える）-------------------------
 const CURRENCY_META = {
-    JPY: { code: "JPY", symbol: "JP¥", locale: "ja-JP" },
+    JPY: { code: "JPY", symbol: "¥", locale: "ja-JP" },
     CNY: { code: "CNY", symbol: "CN¥", locale: "zh-CN" },
     USD: { code: "USD", symbol: "US$", locale: "en-US" }
 };
 
+// 表示通貨は「ユーザーが設定で選んだとき」だけ変わる。端末の地域や言語では変えない
+// （保存済みの金額は円のままなので、勝手に $ や元に見えてしまうのを防ぐ）。
 function getDisplayCurrency() {
-    let region = "";
-    try {
-        if (window.SeasonalBackground && SeasonalBackground.config) region = SeasonalBackground.config.region;
-    } catch (e) { /* ignore */ }
-    // 地域が明確な国は地域優先。kr/eu/au は通貨がないため言語へフォールバック。
-    if (region === "cn") return "CNY";
-    if (region === "us") return "USD";
-    if (region === "jp") return "JPY";
-    const lang = window.I18N ? I18N.lang : "ja";
-    if (lang === "zh") return "CNY";
-    if (lang === "en") return "USD";
-    return "JPY";
+    let pref = "";
+    try { if (typeof appPrefs === "object" && appPrefs) pref = appPrefs.displayCurrency || ""; } catch (e) { /* ignore */ }
+    return CURRENCY_META[pref] ? pref : "JPY";
 }
 
 function currencyMeta() {
     return CURRENCY_META[getDisplayCurrency()] || CURRENCY_META.JPY;
+}
+
+// 日本語 × 日本円のときだけ、従来どおり「80,000円」の表記にする
+function isYenJapanese() {
+    const lang = window.I18N ? I18N.lang : "ja";
+    return lang === "ja" && getDisplayCurrency() === "JPY";
 }
 
 function formatMoney(value) {
@@ -75,9 +74,20 @@ function formatMoney(value) {
     return (n < 0 ? "-" : "") + meta.symbol + grouped;
 }
 
+// 予算サマリー用：JPY は言語に関係なく数字だけを出し、単位は HTML 側の
+// 「円 / 日元 / JPY」に任せる（A 版の表示に合わせる）。
+function formatMoneyPlain(value) {
+    if (getDisplayCurrency() === "JPY") {
+        const n = Number(value) || 0;
+        return (n < 0 ? "-" : "") + Math.abs(n).toLocaleString("ja-JP", { maximumFractionDigits: 0 });
+    }
+    return formatMoney(value);
+}
+
 // i18n.js の translateRaw から呼ばれる。表示テキストだけを変換する。
 function formatMoneyText(text) {
     if (text == null) return text;
+    if (isYenJapanese()) return text;     // 日本語×円は、文中の「円」をそのまま残す
     let out = String(text);
     out = out.replace(/([+-]?\d[\d,]*(?:\.\d+)?)\s*円/g, function (_, n) {
         return formatMoney(parseFloat(String(n).replace(/,/g, "")));
@@ -99,10 +109,12 @@ function updateCurrencyChrome() {
     const meta = currencyMeta();
     document.documentElement.setAttribute("data-currency", meta.code);
 
+    const unitText = isYenJapanese() ? "円" : meta.symbol;
     document.querySelectorAll(".unit-label, .category-budget-unit, .item-unit")
-        .forEach(el => { el.textContent = meta.symbol; });
+        .forEach(el => { el.textContent = unitText; });
+    document.querySelectorAll(".money-sym").forEach(el => { el.textContent = meta.symbol.replace(/^[A-Z]+/, "") || meta.symbol; });
     const summaryUnit = document.querySelector(".summary-unit");
-    if (summaryUnit) summaryUnit.textContent = "";
+    if (summaryUnit) summaryUnit.textContent = getDisplayCurrency() === "JPY" ? "円" : meta.symbol;
 
     // 予算サマリーは数値だけを書き換えるため、通貨変更時に再描画する。
     if (typeof renderBudgetSummary === "function") {
@@ -112,15 +124,15 @@ function updateCurrencyChrome() {
     const label = document.getElementById("expense-amount-label");
     if (label) {
         label.setAttribute("data-i18n-skip", "1");
-        label.textContent = (window.I18N ? I18N.t("金額") : "金額") + " (" + meta.code + ")";
+        label.textContent = (window.I18N ? I18N.t("金額") : "金額") + " (" + (isYenJapanese() ? "円" : meta.code) + ")";
     }
 
     const note = document.getElementById("currency-display-note");
     if (note) {
         note.setAttribute("data-i18n-skip", "1");
-        note.textContent = window.I18N
+        note.textContent = isYenJapanese() ? "" : (window.I18N
             ? I18N.t("表示通貨は記号のみ変更します。両替・換算はしません。")
-            : "表示通貨は記号のみ変更します。両替・換算はしません。";
+            : "表示通貨は記号のみ変更します。両替・換算はしません。");
     }
 }
 
@@ -346,7 +358,7 @@ function escapeHtml(value) {
 // 端末ごとの設定（CSVには含めない）
 // ------------------------------------------
 const PREFS_KEY = "yoyu_aru_prefs";
-const DEFAULT_PREFS = { sound: true, haptics: true, lastBackupAt: null, backupRemindedAt: null };
+const DEFAULT_PREFS = { sound: true, haptics: true, lastBackupAt: null, backupRemindedAt: null, displayCurrency: "JPY", roomHidden: false, breakdownCollapsed: false };
 let appPrefs = loadPrefs();
 
 function loadPrefs() {
@@ -604,8 +616,8 @@ function renderBudgetSummary() {
 
     if (fab) fab.classList.toggle("needs-budget", isViewingCurrentMonth() && budget <= 0);
 
-    if (summarySpent) summarySpent.textContent = formatMoney(spent);
-    if (summaryBudget) summaryBudget.textContent = formatMoney(budget);
+    if (summarySpent) summarySpent.textContent = formatMoneyPlain(spent);
+    if (summaryBudget) summaryBudget.textContent = formatMoneyPlain(budget);
 
     if (budgetBox) budgetBox.classList.remove("state-over");
 
@@ -1070,31 +1082,41 @@ function renderExpenseTimeline() {
             : "";
 
         const card = document.createElement("div");
-        card.className = "card";
+        card.className = "card is-tappable";
         card.dataset.expId = exp.id;
+        card.tabIndex = 0;
+        card.setAttribute("role", "button");
         card.innerHTML = `
             <div class="card-info">
-                <span class="category-badge">${escapeHtml(cat.name)}</span>
-                ${exp.store ? `<span class="card-store"><span class="material-icons-round">storefront</span>${escapeHtml(exp.store)}</span>` : ""}
-                <div class="card-body">
-                    ${exp.memo ? `<h4>${escapeHtml(exp.memo)}</h4>` : ""}
+                <div class="card-head">
+                    <span class="category-badge">${escapeHtml(cat.name)}</span>
+                    ${exp.memo ? `<span class="card-memo">${escapeHtml(exp.memo)}</span>` : ""}
                 </div>
-                <span class="badge-time">${formatTimeLabel(exp.datetime)}</span>
+                ${exp.store ? `<span class="card-store"><span class="material-icons-round">storefront</span>${escapeHtml(exp.store)}</span>` : ""}
                 ${itemsHtml}
             </div>
             <div class="card-right">
                 <span class="main-amount">${(Number(exp.amount) || 0).toLocaleString()} 円</span>
-                <div class="card-actions">
-                    <span class="material-icons-round" data-action="edit" title="編集">edit</span>
-                    <span class="material-icons-round delete-icon" data-action="delete" title="削除">delete</span>
-                </div>
             </div>
         `;
         container.appendChild(card);
     });
 }
 
+function applyBreakdownCollapse() {
+    const box = document.getElementById("breakdown-box");
+    const btn = document.getElementById("btn-toggle-breakdown");
+    const collapsed = !!appPrefs.breakdownCollapsed;
+    if (box) box.classList.toggle("is-collapsed", collapsed);
+    if (btn) {
+        btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        btn.title = collapsed ? "内訳を開く" : "内訳を折りたたむ";
+        btn.setAttribute("aria-label", btn.title);
+    }
+}
+
 function renderBreakdown() {
+    applyBreakdownCollapse();
     const list = document.getElementById("breakdown-list");
     if (!list) return;
     list.innerHTML = "";
@@ -1265,6 +1287,24 @@ function setupEventListeners() {
     const menuModal = document.getElementById("modal-menu");
     document.getElementById("btn-open-more")?.addEventListener("click", () => menuModal?.classList.add("open"));
     document.getElementById("btn-close-menu")?.addEventListener("click", () => menuModal?.classList.remove("open"));
+    document.getElementById("btn-open-details")?.addEventListener("click", () => {
+        document.getElementById("modal-menu")?.classList.remove("open");
+        document.getElementById("modal-details")?.classList.add("open");
+        // モーダルが表示されてから幅を測って描画する
+        requestAnimationFrame(() => renderCharts());
+    });
+    document.getElementById("btn-close-details")?.addEventListener("click", () => {
+        document.getElementById("modal-details")?.classList.remove("open");
+    });
+    document.getElementById("btn-menu-filter")?.addEventListener("click", () => {
+        document.getElementById("modal-menu")?.classList.remove("open");
+        document.getElementById("btn-toggle-filter")?.click();
+        document.getElementById("filter-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    document.getElementById("btn-menu-category-budget")?.addEventListener("click", () => {
+        document.getElementById("modal-menu")?.classList.remove("open");
+        document.getElementById("btn-open-category-budget")?.click();
+    });
     menuModal?.addEventListener("click", (e) => {
         if (e.target.closest(".more-item")) menuModal.classList.remove("open");
     });
@@ -1445,6 +1485,19 @@ function setupEventListeners() {
         });
     }
 
+    document.getElementById("btn-delete-expense")?.addEventListener("click", async () => {
+        const editId = document.getElementById("expense-edit-id")?.value;
+        if (!editId) return;
+        const ok = await askConfirm({
+            title: "この支出を削除しますか？",
+            message: "削除すると、この記録は一覧から消えます。",
+            okLabel: "削除する", cancelLabel: "やめる", danger: true
+        });
+        if (!ok) return;
+        document.getElementById("modal-expense")?.classList.remove("open");
+        deleteExpense(editId);
+    });
+
     // カテゴリ別予算
     document.getElementById("btn-open-category-budget")?.addEventListener("click", openCategoryBudgetModal);
     document.getElementById("btn-close-category-budget")?.addEventListener("click", () => {
@@ -1569,19 +1622,23 @@ function setupEventListeners() {
             if (!card) return;
             const expId = card.dataset.expId;
             if (!expId) return;
-            const actionEl = e.target.closest("[data-action]");
-            const action = actionEl ? actionEl.dataset.action : null;
-
-            if (action === "edit") {
-                editExpense(expId);
-            } else if (action === "delete") {
-                deleteExpense(expId);
-            } else if (action === "toggle") {
+            const toggleEl = e.target.closest("[data-action='toggle']");
+            if (toggleEl) {
                 const box = card.querySelector(".card-items");
                 if (!box) return;
                 box.hidden = !box.hidden;
                 card.classList.toggle("items-open", !box.hidden);
+                return;
             }
+            if (e.target.closest(".card-items")) return;   // 明細の行をタップしても編集には入らない
+            editExpense(expId);
+        });
+        timeline.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            const card = e.target.closest && e.target.closest(".card");
+            if (!card || e.target !== card) return;
+            e.preventDefault();
+            if (card.dataset.expId) editExpense(card.dataset.expId);
         });
     }
 
@@ -1628,6 +1685,12 @@ function setupEventListeners() {
         });
     });
     document.getElementById("btn-clear-filter")?.addEventListener("click", clearFilter);
+    document.getElementById("btn-toggle-breakdown")?.addEventListener("click", () => {
+        appPrefs.breakdownCollapsed = !appPrefs.breakdownCollapsed;
+        savePrefs();
+        applyBreakdownCollapse();
+        if (typeof playPop === "function") playPop();
+    });
     document.getElementById("btn-toggle-filter")?.addEventListener("click", () => {
         const panel = document.getElementById("filter-panel");
         if (panel) panel.classList.toggle("open");
@@ -1776,6 +1839,44 @@ function limitExpenseDatetime() {
     el.max = toDatetimeLocalValue(new Date(n.getFullYear(), n.getMonth() + 1, 0, 23, 59));
 }
 
+// 編集のときは「保存」と「この支出を削除」、新規のときは「記録する」だけ
+function setExpenseModalMode(isEdit) {
+    const save = document.getElementById("btn-save-expense");
+    if (save) save.textContent = isEdit ? "保存" : "記録する";
+    const del = document.getElementById("btn-delete-expense");
+    if (del) del.hidden = !isEdit;
+}
+
+// ---- 確認ポップアップ（削除・リセットで共通）----
+function askConfirm(opts) {
+    return new Promise(resolve => {
+        const modal = document.getElementById("modal-confirm");
+        if (!modal) { resolve(window.confirm(opts.message || "")); return; }
+        const title = document.getElementById("confirm-title");
+        const msg = document.getElementById("confirm-message");
+        const ok = document.getElementById("btn-confirm-ok");
+        const cancel = document.getElementById("btn-confirm-cancel");
+        if (title) title.textContent = opts.title || "確認";
+        if (msg) msg.textContent = opts.message || "";
+        if (ok) { ok.textContent = opts.okLabel || "OK"; ok.classList.toggle("is-danger", !!opts.danger); }
+        if (cancel) { cancel.textContent = opts.cancelLabel || "キャンセル"; cancel.hidden = !!opts.hideCancel; }
+        const done = (v) => {
+            modal.classList.remove("open");
+            ok.removeEventListener("click", onOk);
+            cancel.removeEventListener("click", onCancel);
+            modal.removeEventListener("click", onBackdrop);
+            resolve(v);
+        };
+        const onOk = () => done(true);
+        const onCancel = () => done(false);
+        const onBackdrop = (e) => { if (e.target === modal) done(false); };
+        ok.addEventListener("click", onOk);
+        cancel.addEventListener("click", onCancel);
+        modal.addEventListener("click", onBackdrop);
+        modal.classList.add("open");
+    });
+}
+
 function openExpenseModal() {
     const titleEl = document.getElementById("expense-modal-title");
     const editIdEl = document.getElementById("expense-edit-id");
@@ -1786,6 +1887,7 @@ function openExpenseModal() {
     const modal = document.getElementById("modal-expense");
 
     if (titleEl) titleEl.textContent = "支出を記録";
+    setExpenseModalMode(false);
     if (editIdEl) editIdEl.value = "";
     if (amountEl) amountEl.value = "";
     if (memoEl) memoEl.value = "";
@@ -1814,6 +1916,7 @@ function editExpense(id) {
     const modal = document.getElementById("modal-expense");
 
     if (titleEl) titleEl.textContent = "支出を編集";
+    setExpenseModalMode(true);
     if (editIdEl) editIdEl.value = exp.id;
     if (amountEl) amountEl.value = exp.amount;
     renderCategorySelect();
@@ -2334,10 +2437,15 @@ function importUnifiedCsvText(text) {
     return { addedExpenses, addedCategories, updatedBudgets, updatedCategoryBudgets, roomImported, skippedDuplicates };
 }
 
-function resetCurrentMonthData() {
+async function resetCurrentMonthData() {
     const monthKey = getCurrentMonthKey();
     const label = formatMonthLabel(monthKey);
-    if (!confirm(`${label}の支出と予算（カテゴリ別予算を含む）をすべて削除します。よろしいですか？`)) return;
+    const ok = await askConfirm({
+        title: "今月のデータをリセットしますか？",
+        message: `${label}の支出と予算（カテゴリ別予算を含む）をすべて削除します。`,
+        okLabel: "削除する", cancelLabel: "やめる", danger: true
+    });
+    if (!ok) return;
 
     const now = new Date().toISOString();
     const imageIds = [];
@@ -2364,9 +2472,13 @@ function resetCurrentMonthData() {
     renderStorageInfo();
 }
 
-function resetAllData() {
-    if (!confirm("すべてのデータ（予算・カテゴリ・支出履歴・マイルーム）を削除して初期状態に戻します。この操作は元に戻せません。よろしいですか？")) return;
-    if (!confirm("本当によろしいですか？もう一度確認します。\n（OCR の API キー、アカウント設定、ログイン状態は残ります）")) return;
+async function resetAllData() {
+    const ok = await askConfirm({
+        title: "すべてのデータをリセットしますか？",
+        message: "予算・カテゴリ・支出の記録・マイルームを削除して、最初の状態に戻します。元に戻せません。（先に「CSVを書き出す」で保存しておくと安心です）",
+        okLabel: "リセットする", cancelLabel: "やめる", danger: true
+    });
+    if (!ok) return;
 
     // localStorage.clear() は使わない。リセット対象のキーだけを消す。
     try {
@@ -2395,12 +2507,18 @@ function resetAllData() {
     saveData();
     saveRoomData();
 
+    // 使い方を最初から出し直す（ペットを選び直したあとに始まる）
+    try { localStorage.removeItem(ONBOARDING_KEY); } catch (e) { /* ignore */ }
+    document.getElementById("onboarding-card")?.remove();
+    if (typeof clearOnboardingHighlight === "function") clearOnboardingHighlight();
+
     refreshAllViews();
     centerRoomPreviewOnPet();
 
+    // 設定画面を閉じて、ペット選択へ戻る
+    document.querySelectorAll(".modal-overlay.open").forEach(m => { if (m.id !== "modal-confirm") m.classList.remove("open"); });
     if (!roomData.pet) openPetSelectModal();
-
-    alert("初期化が完了しました！（予算は未設定です。自分で決めてください／ポイント: 8,888）");
+    showToast("リセットしました");
 }
 
 function renderStorageInfo() {
@@ -2928,14 +3046,9 @@ function updateOcrStatus(message) {
     const el = document.getElementById("ocr-status");
     if (!el) return;
     if (message) { el.textContent = message; return; }
-    const s = getOcrSettings();
-    if (s.apiKey) {
-        el.textContent = "設定済み：レシートから読み取れます";
-    } else if (OCR_SERVER_URL) {
-        el.textContent = "おまかせ読み取り：サーバー経由で使えます";
-    } else {
-        el.textContent = "未設定：手入力のみ使えます";
-    }
+    el.textContent = isOcrConfigured()
+        ? "設定済み：レシートから読み取れます"
+        : "未設定：手入力のみ使えます";
 }
 
 function saveOcrSettingsFromForm() {
@@ -2967,20 +3080,12 @@ function buildOcrTestImage() {
 
 async function testOcrConnection() {
     const s = readOcrSettingsForm();
-    saveOcrSettings(s);
-    updateOcrStatus("接続を確認しています…");
-
     if (!s.apiKey) {
-        if (!OCR_SERVER_URL) {
-            updateOcrStatus("APIキーを入力するか、おまかせ読み取りのサーバーを設定してください。");
-            return;
-        }
-        const probe = await testReceiptServer();
-        updateOcrStatus(probe.ok
-            ? "おまかせ読み取りに接続できました。"
-            : `接続できませんでした：${probe.error || "サーバーが応答しません"}`);
+        updateOcrStatus("APIキーを入力してください。");
         return;
     }
+    saveOcrSettings(s);
+    updateOcrStatus("接続を確認しています…");
 
     const fallback = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
     const image = buildOcrTestImage() || fallback;
@@ -2991,28 +3096,6 @@ async function testOcrConnection() {
         return;
     }
     updateOcrStatus(`接続できませんでした：${res.error || "原因不明のエラー"}`);
-}
-
-async function testReceiptServer() {
-    if (!OCR_SERVER_URL) return { ok: false, error: "サーバーが未設定です" };
-    const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timer = controller ? setTimeout(() => controller.abort(), 10000) : null;
-    try {
-        const res = await fetch(OCR_SERVER_URL, {
-            method: "GET",
-            headers: supabaseFunctionHeaders(),
-            signal: controller ? controller.signal : undefined
-        });
-        if (!res.ok) return { ok: false, error: `サーバーが HTTP ${res.status} を返しました` };
-        const json = await res.json().catch(() => null);
-        if (json && json.ok === false) return { ok: false, error: json.error || "サーバーがエラーを返しました" };
-        return { ok: true };
-    } catch (e) {
-        const aborted = e && e.name === "AbortError";
-        return { ok: false, error: aborted ? "接続がタイムアウトしました" : "サーバーに接続できません" };
-    } finally {
-        if (controller) clearTimeout(timer);
-    }
 }
 
 // ==========================================
@@ -3049,21 +3132,23 @@ const FURNITURE_CATALOG = [
 
 const PET_Z = 25;
 
-const APP_VERSION = "3.6.5";
+const APP_VERSION = "3.8.0";
 
 const PET_AWAKE_IMG = {
     neko: "assets/neko_awake.png",
     usagi: "assets/usagi_awake.png",
     shiba: "assets/shiba_awake.png",
     hamster: "assets/hamster_awake.png",
-    panda: "assets/panda_awake.png"
+    panda: "assets/panda_awake.png",
+    special: "assets/special_awake.png"
 };
 const PET_SLEEP_IMG = {
     neko: "assets/neko_sleep.png",
     usagi: "assets/usagi_sleep.png",
     shiba: "assets/shiba_sleep.png",
     hamster: "assets/hamster_sleep.png",
-    panda: "assets/panda_sleep.png"
+    panda: "assets/panda_sleep.png",
+    special: "assets/special_sleep.png"
 };
 
 // ------------------------------------------
@@ -3170,7 +3255,9 @@ const PET_CATALOG = {
     usagi:   { label: "うさぎ",     gobi: "ぴょん", defaultName: "ぴょん" },
     shiba:   { label: "しばいぬ",   gobi: "わん",   defaultName: "まる" },
     hamster: { label: "ハムスター", gobi: "ちゅー", defaultName: "むぎ" },
-    panda:   { label: "パンダ",     gobi: "もふ",   defaultName: "たけ" }
+    panda:   { label: "パンダ",     gobi: "もふ",   defaultName: "たけ" },
+    // 好感度100で仲間になる特別なペット（ガチャには出ない）
+    special: { label: "スペシャル", gobi: "きらっ", defaultName: "ほし" }
 };
 
 // 部屋（マップ）。default は最初から持っている部屋。
@@ -3766,6 +3853,7 @@ function addAffinity(amount, reason) {
 
     saveRoomData(false);
     renderAffinity();
+    checkSpecialPetUnlock();
     return a.score - before;
 }
 
@@ -3793,13 +3881,34 @@ function renderAffinity() {
     if (fillEl) fillEl.style.width = `${a.score}%`;
 
     const scoreEl = document.getElementById("affinity-score");
-    if (scoreEl) scoreEl.textContent = String(a.score);
+    if (scoreEl) scoreEl.textContent = `${a.score}/100`;
 
-    const labelEl = document.getElementById("affinity-label");
-    if (labelEl) labelEl.textContent = rank.label;
-
+    // 言語に左右されない表示（ハート・ゲージ・数字だけ）。ランク名は使わない
     const box = document.getElementById("affinity-box");
-    if (box) box.dataset.level = String(rank.level);
+    if (box) {
+        box.dataset.level = String(rank.level);
+        box.classList.toggle("is-full", a.score >= 100);
+    }
+}
+
+// 好感度が 100 になったら、特別なペットが仲間になる（一度だけ）
+const SPECIAL_PET_ID = "special";
+function checkSpecialPetUnlock() {
+    if (!roomData || getAffinity().score < 100) return false;
+    if (!roomData.ownedPets) roomData.ownedPets = [];
+    if (roomData.ownedPets.includes(SPECIAL_PET_ID)) return false;
+    roomData.ownedPets.push(SPECIAL_PET_ID);
+    if (!roomData.petNames) roomData.petNames = {};
+    if (!roomData.petNames[SPECIAL_PET_ID]) roomData.petNames[SPECIAL_PET_ID] = PET_CATALOG[SPECIAL_PET_ID].defaultName;
+    saveRoomData(false);
+    setTimeout(() => {
+        askConfirm({
+            title: "スペシャルペットが仲間に！",
+            message: "好感度が100になりました。ガチャ → コレクションから、いつでも切りかえられます。",
+            okLabel: "OK", hideCancel: true
+        });
+    }, 700);
+    return true;
 }
 
 // ==========================================
@@ -4176,147 +4285,11 @@ function getRecordingStreak() {
     return streak;
 }
 
-function petChatReply(text) {
-    const t = (text || "").trim();
-    if (!t) return getPetLine("idle", "なにか話したいのかな？");
-    if (/こんにちは|こんばんは|おはよう|やあ|\bhello\b|\bhi\b/i.test(t)) return getPetLine("idle", "こんにちは！今日も一緒にがんばろう");
-    if (/目標|貯金|節約|予算|お金|円|買い/i.test(t)) return pickPetLine(getCurrentBudgetRatioOrNull());
-    if (/すごい|えらい|かわいい|いいね|good|好き|love/i.test(t)) return getPetLine("idle", "ありがとう！うれしい");
-    if (/元気|げんき|大丈夫|どう/i.test(t)) return getPetLine("idle", "元気だよ！あなたも無理しないでね");
-    if (/眠|ねむ|おやすみ/i.test(t)) return getPetLine("idle", "おやすみ。また明日ね");
-    return randomPick([getPetLine("idle", "なるほど！"), getPetLine("idle", "そうなんだ！"), getPetLine("idle", "うん、聞いてるよ！"), getPetLine("idle", "ふむふむ…")]);
-}
-
-// ------------------------------------------
-// ペットとの会話（AI）
-// ------------------------------------------
-// 「データ管理 → AI設定」で入れたキーを使う（レシート読み取りと共通）。
-// 未設定・通信失敗のときは、これまでのルールベースの返事にそのまま戻る。
-let petChatHistory = [];
-let petChatBusy = false;
-
 function checkAiEndpoint(settings) {
     if (settings.provider !== "custom") return "";
     const endpoint = String(settings.endpoint || "").trim();
     const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(endpoint);
     return (/^https:\/\//i.test(endpoint) || isLocal) ? "" : "エンドポイントは https:// で指定してください（localhost を除く）。";
-}
-
-function buildPetSystemPrompt() {
-    const pet = roomData.pet || {};
-    const kind = PET_CATALOG[pet.type] || PET_CATALOG.neko;
-    const monthKey = getCurrentMonthKey();
-    const budget = appData.budget[monthKey] || 0;
-    const spent = expensesOfMonth(monthKey).reduce((sum, e) => sum + e.amount, 0);
-    const money = budget > 0
-        ? `今月の予算は${budget}円、使った額は${spent}円（使用率${Math.round(spent / budget * 100)}%）。`
-        : "今月の予算はまだ決まっていない。";
-    return [
-        `あなたは家計簿アプリの中で飼い主と暮らすペット「${pet.name || kind.label}」（${kind.label}）です。`,
-        `やさしく素直な口調で、必ず日本語で、1〜2文・60文字以内で返事をする。語尾は「${kind.gobi}」で終える。`,
-        "飼い主を責めたり説教したりしない。投資・借金・法律などの専門的な助言はせず、詳しい人に聞くようやんわり促す。",
-        "APIキーや設定の話題には答えない。",
-        money,
-        `なつき度は100点中${getAffinityScore()}点。`
-    ].join("\n");
-}
-
-async function askPetLLMServer(text) {
-    if (!PET_CHAT_SERVER_URL) return null;
-    const message = String(text || "").trim().slice(0, 200);
-    if (!message) return null;
-
-    const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timer = controller ? setTimeout(() => controller.abort(), 15000) : null;
-    try {
-        const res = await fetch(PET_CHAT_SERVER_URL, {
-            method: "POST",
-            headers: supabaseFunctionHeaders(),
-            body: JSON.stringify({
-                message: message,
-                history: petChatHistory.slice(-6).map(t => ({ role: t.role, text: t.text })),
-                device: getDeviceId()
-            }),
-            signal: controller ? controller.signal : undefined
-        });
-        if (res.status === 429) return "今日はたくさん話したから、また明日ね。";
-        if (!res.ok) return null;
-        const json = await res.json().catch(() => null);
-        if (!json || json.ok === false) return null;
-        const reply = String(json.text || "").replace(/\s+/g, " ").trim().slice(0, 80);
-        if (!reply) return null;
-        petChatHistory.push({ role: "user", text: message }, { role: "assistant", text: reply });
-        petChatHistory = petChatHistory.slice(-12);
-        return reply;
-    } catch (e) {
-        return null;
-    } finally {
-        if (controller) clearTimeout(timer);
-    }
-}
-
-async function askPetLLM(text) {
-    const s = getOcrSettings();
-    if (!isOcrConfigured() || checkAiEndpoint(s)) {
-        // 自分のキーが無い／使えない場合は、サーバー経由のペット会話へ。
-        return PET_CHAT_SERVER_URL ? askPetLLMServer(text) : null;
-    }
-
-    const system = buildPetSystemPrompt();
-    const turns = petChatHistory.slice(-6).concat([{ role: "user", text: text }]);
-    let req;
-    if (s.provider === "gemini") {
-        const endpoint = (s.endpoint || "https://generativelanguage.googleapis.com").replace(/\/$/, "");
-        req = {
-            url: `${endpoint}/v1beta/models/${encodeURIComponent(s.model || "gemini-2.0-flash")}:generateContent`,
-            headers: { "Content-Type": "application/json", "x-goog-api-key": s.apiKey },
-            body: {
-                systemInstruction: { parts: [{ text: system }] },
-                contents: turns.map(t => ({ role: t.role === "user" ? "user" : "model", parts: [{ text: t.text }] })),
-                generationConfig: { temperature: 0.8, maxOutputTokens: 150 }
-            }
-        };
-    } else {
-        const endpoint = (s.endpoint || "https://api.openai.com/v1").replace(/\/$/, "");
-        req = {
-            url: `${endpoint}/chat/completions`,
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${s.apiKey}` },
-            body: {
-                model: s.model || "gpt-4o-mini",
-                temperature: 0.8,
-                max_tokens: 150,
-                messages: [{ role: "system", content: system }]
-                    .concat(turns.map(t => ({ role: t.role, content: t.text })))
-            }
-        };
-    }
-
-    const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timer = controller ? setTimeout(() => controller.abort(), 15000) : null;
-    try {
-        const res = await fetch(req.url, {
-            method: "POST",
-            headers: req.headers,
-            body: JSON.stringify(req.body),
-            signal: controller ? controller.signal : undefined
-        });
-        if (!res.ok) return null;
-        const reply = String(extractResponseText(s.provider, await res.json()))
-            .replace(/\s+/g, " ").trim().slice(0, 80);
-        if (!reply) return null;
-        petChatHistory.push({ role: "user", text: text }, { role: "assistant", text: reply });
-        petChatHistory = petChatHistory.slice(-12);
-        return reply;
-    } catch (e) {
-        return null;
-    } finally {
-        if (timer) clearTimeout(timer);
-    }
-}
-
-async function petChatAnswer(text) {
-    const reply = await askPetLLM(text);
-    return reply ? getPetLine("idle", reply) : petChatReply(text);
 }
 
 function scheduleNextPetComment() {
@@ -4366,7 +4339,8 @@ function initRoomSystem() {
     renderCurrency();
     setupRoomEventListeners();
     setupRoomDragToScroll();
-    setupRoomPullToCompact();
+    // v3.8: A 版に合わせて、部屋の下方向スワイプ縮小は使わない。
+    // 部屋の開閉は header の肉球ボタンだけに一本化する。
 
     if (!roomData.pet) {
         openPetSelectModal();
@@ -4378,6 +4352,7 @@ function initRoomSystem() {
     centerRoomPreviewOnPet();
     preloadPetSleepGif();
     renderAffinity();
+    checkSpecialPetUnlock();
     renderLoginStreak();
     startPetLifeLoops();
 
@@ -4645,6 +4620,34 @@ function createFurnitureElement(placedItem, interactive, container) {
 // ==========================================
 // ルーム編集（フルスクリーン）
 // ==========================================
+// マイルームを隠す／見せる（肉球ボタン）。隠すときはやわらかく畳む
+function applyRoomHidden(animate) {
+    const hidden = !!appPrefs.roomHidden;
+    const wrap = document.getElementById("room-collapsible");
+    const btn = document.getElementById("btn-toggle-room");
+    const section = document.querySelector(".room-section");
+    if (section) section.classList.toggle("is-room-hidden", hidden);
+    if (wrap) {
+        if (!animate) wrap.classList.add("no-anim");
+        wrap.classList.toggle("is-collapsed", hidden);
+        wrap.setAttribute("aria-hidden", hidden ? "true" : "false");
+        if (!animate) { void wrap.offsetHeight; wrap.classList.remove("no-anim"); }
+    }
+    if (btn) {
+        const label = hidden ? "マイルームを見せる" : "マイルームを隠す";
+        btn.setAttribute("aria-pressed", hidden ? "true" : "false");
+        btn.title = window.I18N ? I18N.t(label) : label;
+        btn.setAttribute("aria-label", btn.title);
+    }
+}
+function setRoomHidden(hidden, animate) {
+    appPrefs.roomHidden = !!hidden;
+    savePrefs();
+    applyRoomHidden(animate !== false);
+    if (typeof playPop === "function") playPop();
+    if (typeof vibrate === "function") vibrate(10);
+}
+
 function openRoomEditor() {
     const editor = document.getElementById("room-editor");
     if (editor) editor.classList.add("open");
@@ -4970,29 +4973,6 @@ function setupRoomEventListeners() {
         document.getElementById("modal-daily-login")?.classList.remove("open");
     });
 
-    const petChatInput = document.getElementById("pet-chat-input");
-    const petChatSend = document.getElementById("pet-chat-send");
-    const sendPetChat = async () => {
-        if (!petChatInput || petChatBusy) return;
-        const text = petChatInput.value.trim();
-        petChatInput.value = "";
-        if (!roomData.pet) return;
-        if (petWakeUp()) { petSay(getPetLine("idle", "ん…なあに？")); vibrate(15); return; }
-        if (!text) { petSay(petChatReply("")); return; }
-        petChatBusy = true;
-        petSay("…");
-        try {
-            petSay(await petChatAnswer(text));
-        } finally {
-            petChatBusy = false;
-        }
-        vibrate(15);
-    };
-    petChatSend?.addEventListener("click", sendPetChat);
-    petChatInput?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") sendPetChat();
-    });
-
     document.getElementById("btn-open-shop")?.addEventListener("click", openShop);
     document.getElementById("btn-close-shop")?.addEventListener("click", () => {
         document.getElementById("modal-shop")?.classList.remove("open");
@@ -5001,21 +4981,24 @@ function setupRoomEventListeners() {
     document.getElementById("btn-open-room-editor")?.addEventListener("click", openRoomEditor);
     document.getElementById("btn-close-room-editor")?.addEventListener("click", closeRoomEditor);
 
-    document.getElementById("pet-room-preview")?.addEventListener("click", () => {
+    // 部屋のタップ：ペットをタップ → ペットが話す／部屋（家具・床・壁）をタップ → 編集画面
+    document.getElementById("pet-room-preview")?.addEventListener("click", (e) => {
         if (roomDragMoved) return;
         if (isRoomCompact()) return;
-        if (!roomData.pet) return;
-        if (petWakeUp()) return;
-        triggerPetHop();
-        if (Math.random() < 0.6) spawnPetReaction("favorite");
+        if (e.target.closest(".room-dialogue-box")) return;
+        if (e.target.closest(".pet-item")) {
+            if (!roomData.pet) return;
+            if (petWakeUp()) { petSay(getPetLine("idle", "ん…なあに？")); vibrate(15); return; }
+            triggerPetHop();
+            if (Math.random() < 0.6) spawnPetReaction("favorite");
+            petSay(pickPetLine(getCurrentBudgetRatioOrNull()));
+            return;
+        }
+        openRoomEditor();
     });
 
-    document.getElementById("pet-float-grip")?.addEventListener("click", () => {
-        if (toggleRoomCompact()) {
-            playPop();
-            vibrate(15);
-        }
-    });
+    document.getElementById("btn-toggle-room")?.addEventListener("click", () => setRoomHidden(!appPrefs.roomHidden, true));
+    applyRoomHidden(false);
 
     window.addEventListener("resize", resetRoomCompactBase);
 }
@@ -5767,25 +5750,12 @@ const RECEIPT_JPEG_QUALITY = 0.8;
 const RECEIPT_THUMB_EDGE = 360;
 
 // ---- サーバー経由の読み取り（ユーザーは APIキー不要）----------------------------
-// 公開するときは、Supabase Edge Function の URL と publishable / anon key を入れる。
-// キーはサーバー側の秘密情報に置く。ここ（アプリのコード）には絶対に書かない。
-const SUPABASE_BASE_URL = "https://kdcxycqmkftcgnfjvdwz.supabase.co";
-const OCR_SERVER_URL = SUPABASE_BASE_URL + "/functions/v1/scan-receipt";
-const PET_CHAT_SERVER_URL = SUPABASE_BASE_URL + "/functions/v1/pet-chat";
-const OCR_SERVER_ANON_KEY = "sb_publishable_7TdvqziSh_1XleGqwYnF5g_LslTFS8x";
+// 公開するときは、Supabase Edge Function「scan-receipt」の URL を入れる（server/README を参照）。
+// 空のままなら、これまでどおり「自分のAPIキー」方式だけが使える。
+// ※ キーはサーバー側の秘密情報に置く。ここ（アプリのコード）には絶対に書かない。
+const OCR_SERVER_URL = "";
+const OCR_SERVER_ANON_KEY = "";          // Supabase の anon key（公開してよいキー）。不要なら空
 const DEVICE_ID_KEY = "yoyu_aru_device_id";
-
-function supabaseFunctionHeaders() {
-    const headers = { "Content-Type": "application/json" };
-    if (OCR_SERVER_ANON_KEY) headers["apikey"] = OCR_SERVER_ANON_KEY;
-    // 旧 anon JWT のときだけ Bearer を付ける。publishable key は apikey で送る。
-    if (OCR_SERVER_ANON_KEY && /^eyJ/.test(OCR_SERVER_ANON_KEY)) {
-        headers["Authorization"] = "Bearer " + OCR_SERVER_ANON_KEY;
-    }
-    return headers;
-}
-
-let ephemeralDeviceId = "";
 
 function getDeviceId() {
     try {
@@ -5796,13 +5766,7 @@ function getDeviceId() {
             localStorage.setItem(DEVICE_ID_KEY, id);
         }
         return id;
-    } catch (e) {
-        if (!ephemeralDeviceId) {
-            ephemeralDeviceId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
-                : "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
-        }
-        return ephemeralDeviceId;
-    }
+    } catch (e) { return "anon"; }
 }
 
 function isReceiptScanAvailable() {
@@ -5815,7 +5779,11 @@ async function recognizeReceiptViaServer(dataUrl) {
     const timer = controller ? setTimeout(() => controller.abort(), 25000) : null;
     let res;
     try {
-        const headers = supabaseFunctionHeaders();
+        const headers = { "Content-Type": "application/json" };
+        if (OCR_SERVER_ANON_KEY) {
+            headers["apikey"] = OCR_SERVER_ANON_KEY;
+            headers["Authorization"] = "Bearer " + OCR_SERVER_ANON_KEY;
+        }
         res = await fetch(OCR_SERVER_URL, {
             method: "POST",
             headers: headers,
@@ -6345,13 +6313,13 @@ const ONBOARDING_STEPS = [
     {
         id: "expense",
         title: "② 1件、記録してみよう",
-        body: "右下の ＋ をタップして、金額とカテゴリを入れて「記録する」を押してね。1件記録するごとに100ポイントと、なかよし度が1たまるよ（なかよし度は1日5まで）。",
+        body: "右下の ＋ をタップして、金額とカテゴリを入れて「記録する」を押してね。1件記録するごとに100ポイントがたまるよ。",
         target: "#fab-add-expense"
     },
     {
         id: "pet",
         title: "③ ペットと遊ぼう",
-        body: "ペットをタップすると、今月の予算の余裕に合わせて話してくれるよ。下の入力欄から話しかけることもできます。たまったポイントは、右上のメニューのショップやガチャで使えます。",
+        body: "ペットをタップすると、今月の予算の余裕に合わせて話してくれるよ。ハートの数字は好感度で、1つの記録＝1ポイント。100まで貯めるといいことが起きるよ！ 部屋をタップすると模様替えができて、肉球ボタンでマイルームを隠せます。たまったポイントは、右上のメニューのショップやガチャで使えます。",
         target: "#pet-room-preview",
         next: true
     },
@@ -7025,4 +6993,16 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (themeMedia.addListener) themeMedia.addListener(onChange);
     }
 });
+
+// ---- 表示通貨の選択（設定の「言語」画面の中）----
+(function setupCurrencyPref() {
+    const sel = document.getElementById("pref-currency");
+    if (!sel) return;
+    sel.value = getDisplayCurrency();
+    sel.addEventListener("change", () => {
+        appPrefs.displayCurrency = CURRENCY_META[sel.value] ? sel.value : "JPY";
+        savePrefs();
+        refreshCurrencyDisplay();
+    });
+})();
 

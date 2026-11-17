@@ -1,0 +1,135 @@
+/* v3.8 第②批：A 版のレイアウトを B の機能に載せる
+   ・760px 以上だけ 2 カラム
+   ・390×844 は 1 カラムのまま
+   ============================================================ */
+
+/* main の中に入った部屋。app-content の左右余白と二重にならないようにする */
+.app-content > .landscape-cols > .col-left > .room-section {
+    position: relative;
+    flex-shrink: 1;
+    padding: 0;
+    margin: 0 0 14px 0;
+}
+
+/* 好感度は部屋の右上に重ねる。高さを増やさず、予算・記録ボタンを押し出さない */
+.room-affinity-float {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 6;
+    pointer-events: none;
+}
+.room-affinity-float .affinity-box {
+    margin: 0;
+    padding: 4px 9px;
+    gap: 6px;
+    flex: 0 1 132px;
+    min-width: 96px;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.92);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 1px 4px rgba(45, 42, 38, 0.12);
+}
+.room-affinity-float .affinity-heart { font-size: 15px; }
+.room-affinity-float .affinity-track { height: 6px; min-width: 24px; }
+.room-affinity-float .affinity-score {
+    font-size: 0.72rem;
+    min-width: 2.2ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.room-section.is-room-hidden .room-affinity-float { display: none; }
+
+/* ヘッダーの肉球。B の room-hide-btn をここへ移したので、見た目だけ A に寄せる */
+.app-header .paw-toggle svg { fill: currentColor; transition: transform .35s ease; }
+.app-header .paw-toggle[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.app-header .paw-toggle[aria-pressed="true"] svg { transform: rotate(-18deg) scale(.92); }
+
+/* FAB は A と同じく文字付き。B の 48px 固定を上書きする */
+.fab {
+    width: auto;
+    min-width: 48px;
+    height: 48px;
+    padding: 0 16px;
+    gap: 6px;
+}
+.fab .material-icons-round { font-size: 21px; }
+.fab .fab-label {
+    font-size: 0.78rem;
+    line-height: 1;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+}
+
+/* 1 カラム時は明示的にブロック。列の間に余計な余白を作らない */
+.landscape-cols { display: block; }
+.col-left, .col-right { min-width: 0; }
+
+/* 詳細モーダル内のグラフ */
+#modal-details .modal-body { padding-bottom: 4px; }
+#modal-details .charts-box { padding-bottom: 0; }
+#modal-details .section-title-bar:first-child { margin-top: 0; }
+
+/* A 版の内訳折りたたみ */
+.breakdown-collapse-btn {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.breakdown-collapse-btn .material-icons-round { font-size: 20px; transition: transform .2s ease; }
+.breakdown-box.is-collapsed .breakdown-collapse-btn .material-icons-round { transform: rotate(-90deg); }
+.breakdown-box.is-collapsed .breakdown-list { display: none; }
+
+/* ---- A と同じ 2 カラム。760px 未満には一切適用しない ---- */
+@media (min-width: 760px) {
+    .app-container {
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        transform: none;
+        width: 100%;
+        max-width: 1120px;
+    }
+    .app-header { padding: 24px 32px 14px; }
+    .app-content { padding: 4px 32px 120px; }
+    .landscape-cols {
+        display: grid;
+        grid-template-columns: minmax(340px, 400px) 1fr;
+        gap: 40px;
+        align-items: start;
+    }
+    .col-left, .col-right { min-width: 0; }
+    .col-right .section-title-bar:first-child { margin-top: 6px; }
+    .col-left > .room-section { margin-bottom: 14px; }
+    .fab { right: max(28px, calc(50vw - 560px + 32px)); }
+
+    .modal-overlay, .modal-overlay.shop-overlay { align-items: center; }
+    .modal-content { border-radius: 10px; transform: translateY(12px); max-width: 560px; }
+    .modal-overlay.open .modal-content { transform: none; }
+    .shop-overlay .modal-content {
+        width: min(720px, 92vw);
+        max-width: none;
+        height: auto;
+        max-height: min(86vh, 820px);
+        border-radius: 10px;
+        margin: 0 auto;
+    }
+}
+
+/* 390px 前後で好感度が部屋を圧迫しないよう、少しだけ縮める */
+@media (max-width: 400px) {
+    .room-affinity-float { top: 6px; right: 6px; }
+    .room-affinity-float .affinity-box { flex-basis: 112px; min-width: 88px; padding: 3px 7px; }
+    .room-affinity-float .affinity-heart { font-size: 13px; }
+    .room-affinity-float .affinity-score { font-size: 0.68rem; }
+    .fab { padding: 0 13px; }
+    .fab .fab-label { font-size: 0.74rem; }
+}
+

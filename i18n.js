@@ -1,4 +1,4 @@
-﻿/* ============================================================================
+/* ============================================================================
    i18n.js — 表示言語の切り替え（日本語 / 中文 / English）
    ----------------------------------------------------------------------------
    このアプリはもともと日本語の文言を直接 DOM に書いています。そこで、
@@ -13,6 +13,7 @@
     var LANGS = [
         { id: "ja", label: "日本語", sub: "Japanese" },
         { id: "zh", label: "中文", sub: "简体中文" },
+        { id: "zht", label: "繁體中文", sub: "Traditional Chinese" },
         { id: "en", label: "English", sub: "English" }
     ];
 
@@ -47,6 +48,7 @@
         ["金額が小さい順", "金额从低到高", "Lowest amount"],
         ["条件をクリア", "清除条件", "Clear filters"],
         ["メニュー", "菜单", "Menu"],
+        ["詳細", "详情", "Details"],
         ["閉じる", "关闭", "Close"],
         ["テーマ（見た目）", "主题（外观）", "Theme"],
         ["ガチャ", "扭蛋", "Gacha"],
@@ -59,6 +61,33 @@
         ["金額 (円)", "金额（日元）", "Amount (JPY)"],
         ["金額", "金额", "Amount"],
         ["表示通貨は記号のみ変更します。両替・換算はしません。", "仅切换显示货币符号，不进行兑换或换算。", "Only the display currency symbol changes. No conversion is performed."],
+        ["南米（南半球）", "南美（南半球）", "South America (Southern Hemisphere)"],
+        ["この支出を削除", "删除这笔支出", "Delete this expense"],
+        ["この支出を削除しますか？", "要删除这笔支出吗？", "Delete this expense?"],
+        ["削除すると、この記録は一覧から消えます。", "删除后，这条记录将从列表中消失。", "Once deleted, this record disappears from the list."],
+        ["削除する", "删除", "Delete"],
+        ["やめる", "取消", "Cancel"],
+        ["確認", "确认", "Confirm"],
+        ["スペシャルペットが仲間に！", "特别宠物成为了你的伙伴！", "A special pet has joined you!"],
+        ["好感度が100になりました。ガチャ → コレクションから、いつでも切りかえられます。", "好感度达到了100。可以随时在 扭蛋 → 收藏 里切换。", "Your affinity reached 100. You can switch pets anytime from Gacha → Collection."],
+        ["スペシャル", "特别", "Special"],
+        ["記録するほど、ペットとなかよくなります", "记录得越多，和宠物越亲密", "The more you record, the closer you get"],
+        ["好感度", "好感度", "Affinity"],
+        ["マイルームを隠す", "隐藏我的房间", "Hide My Room"],
+        ["マイルームを見せる", "显示我的房间", "Show My Room"],
+        ["すべてのデータをリセットしますか？", "要重置所有数据吗？", "Reset all data?"],
+        ["予算・カテゴリ・支出の記録・マイルームを削除して、最初の状態に戻します。元に戻せません。（先に「CSVを書き出す」で保存しておくと安心です）", "将删除预算、分类、支出记录和我的房间，恢复到最初状态。此操作无法撤销。（建议先用“导出 CSV”备份）", "This deletes your budget, categories, expense records and My Room, and returns the app to its initial state. This cannot be undone. (Export a CSV first to be safe.)"],
+        ["リセットする", "重置", "Reset"],
+        ["リセットしました", "已重置", "Reset complete"],
+        ["今月のデータをリセットしますか？", "要重置本月数据吗？", "Reset this month's data?"],
+        ["「記録する」を押してね。1件記録するごとに100ポイントがたまるよ。", "请按“记录”。每记录一笔就能获得100点。", "Press “Record”. Every record earns you 100 points."],
+        ["ペットをタップすると、今月の予算の余裕に合わせて話してくれるよ。ハートの数字は好感度で、1つの記録＝1ポイント。100まで貯めるといいことが起きるよ！ 部屋をタップすると模様替えができて、肉球ボタンでマイルームを隠せます。たまったポイントは、右上のメニューのショップやガチャで使えます。", "点击宠物，它会根据本月预算的余裕和你说话。爱心旁的数字是好感度，1 条记录 = 1 点，攒到 100 会发生好事哦！点击房间可以布置，用肉球按钮可以隐藏我的房间。积攒的点数可以在右上角菜单的商店和扭蛋里使用。", "Tap your pet and it will talk to you based on how much room is left in this month's budget. The number next to the heart is affinity: one record = 1 point, and something good happens when you reach 100! Tap the room to redecorate, and use the paw button to hide My Room. Points can be spent in the Shop and Gacha from the menu at the top right."],
+        ["レシートの自動入力は、APIキーなしでも1日に数回まで使えます（サーバー経由）。画像は読み取りのためだけにサーバーへ送られ、サーバーには保存されません。読み取り自体は Google の Gemini で行われ、その取り扱いは Google の規約に従います。", "收据自动录入在没有 API 密钥时每天也可使用几次（通过服务器）。图片仅用于读取，会发送到服务器，但服务器不会保存。读取本身由 Google 的 Gemini 完成，其数据处理遵循 Google 的条款。", "Receipt auto-fill works without an API key a few times a day (via our server). The image is sent to the server only to be read, and the server does not store it. The reading itself is done by Google's Gemini, whose handling of data is governed by Google's terms."],
+        ["表示通貨", "显示货币", "Display currency"],
+        ["日本円（円 / ¥）", "日元（円 / ¥）", "Japanese yen (円 / ¥)"],
+        ["人民元（CN¥）", "人民币（CN¥）", "Chinese yuan (CN¥)"],
+        ["米ドル（US$）", "美元（US$）", "US dollar (US$)"],
+        ["表示の記号だけを変えます。金額の換算はしません。", "只更改显示的符号，不会换算金额。", "Only the displayed symbol changes. Amounts are not converted."],
         ["カテゴリ", "分类", "Category"],
         ["店舗（任意）", "店铺（可选）", "Store (optional)"],
         ["メモ（任意）", "备注（可选）", "Note (optional)"],
@@ -67,7 +96,7 @@
         ["合計を金額に入れる", "将合计填入金额", "Use item total"],
         ["日時", "日期时间", "Date & time"],
         ["あとから日付を直せます（レシートの日付に合わせられます）", "之后可以修改日期（可对齐收据上的日期）", "You can adjust the date later to match the receipt."],
-        ["記録する", "记录", "Save expense"],
+        ["記録する", "记一笔", "Save expense"],
         ["貯金プランナー", "存钱计划", "Savings planner"],
         ["月収とほしいものの金額を入れると、あと何日で買えるかを計算します。支出は実際の記録から自動で見積もります。", "输入月收入和想要的东西的价格，就能算出还要多少天才能买到。支出会根据实际记录自动估算。", "Enter your income and goal amount to see how many days until you can buy it. Spending is estimated from your records."],
         ["月収（手取り）", "月收入（税后）", "Monthly income (net)"],
@@ -111,7 +140,7 @@
         ["CSVを書き出す", "导出 CSV", "Export CSV"],
         ["CSVを読み込む", "导入 CSV", "Import CSV"],
         ["AI設定（レシート読み取り・ペットとの会話）", "AI 设置（收据读取・宠物对话）", "AI settings (receipts & pet chat)"],
-        ["レシートの自動入力は、APIキーなしでも1日に1回まで使えます（サーバー経由。画像は読み取りのためだけにサーバーと Google へ送られ、保存されません）。ペットとのAI会話も、APIキーなしで1日5回まで使えます。自分の APIキー を入れると、回数の制限なしで使えます。キーはこの端末にだけ保存され、このアプリのコードやGitHubには含まれません。使うときだけ、レシート画像や話しかけた内容がサーバーと Google へ送信されます。", "没有 API 密钥时，收据自动识别每天可使用 1 次（经由服务器。图片只为识别而发送给服务器和 Google，不会被保存）。宠物 AI 对话每天也可免费使用 5 次。填入自己的 API 密钥后可不限次数使用。密钥只保存在本机，不包含在本应用代码或 GitHub 中。只有使用时，收据图片或对话内容才会发送给服务器和 Google。", "Receipt scanning works up to 1 time a day without an API key (via our server; images are sent only for reading and are not stored). AI pet chat also works up to 5 messages a day without a key. Add your own key for unlimited use. The key stays on this device and is never included in the app code or GitHub. Images and messages are sent to our server and Google only when you use the feature."],
+        ["レシートの自動入力は、APIキーなしでも1日に数回まで使えます（サーバー経由。画像は読み取りのためだけにサーバーと Google へ送られ、保存されません）。自分の APIキー を入れると、回数の制限なしで使え、ペットとのAI会話も使えます。キーはこの端末にだけ保存され、このアプリのコードやGitHubには含まれません。使うときだけ、レシート画像や話しかけた内容が選択した事業者へ送信されます。", "没有 API 密钥时，收据自动识别每天也能用几次（经由服务器。图片只为识别而发送给服务器和 Google，不会被保存）。填入自己的 API 密钥后可以不限次数使用，还能和宠物进行 AI 对话。密钥只保存在本机，不包含在本应用代码或 GitHub 中。只有使用时，收据图片或对话内容才会发送给你选择的服务商。", "Receipt scanning works a few times a day without an API key (via our server; images are sent only for reading and are not stored). Add your own API key for unlimited use and AI pet chat. The key stays on this device and is never included in the app code or GitHub. Images and messages are sent to your chosen provider only when you use the feature."],
         ["サービス", "服务", "Provider"],
         ["その他（OpenAI 互換のエンドポイント）", "其他（OpenAI 兼容端点）", "Other (OpenAI-compatible)"],
         ["APIキー", "API 密钥", "API key"],
@@ -211,12 +240,6 @@
         ["保存できませんでした", "保存失败", "Couldn't save"],
         ["設定済み：レシートから読み取れます", "已设置：可以从收据读取", "Configured: receipt scanning is available"],
         ["未設定：手入力のみ使えます", "未设置：只能手动输入", "Not configured: manual entry only"],
-        ["おまかせ読み取り：サーバー経由で使えます", "自助读取：可通过服务器使用", "Auto scan: available via server"],
-        ["APIキーを入力するか、おまかせ読み取りのサーバーを設定してください。", "请输入 API 密钥，或设置自助读取服务器。", "Enter an API key, or configure the auto-scan server."],
-        ["おまかせ読み取りに接続できました。", "已连接到自助读取服务。", "Connected to the auto-scan service."],
-        ["サーバーが未設定です", "服务器尚未设置", "Server is not configured"],
-        ["接続がタイムアウトしました", "连接超时", "Connection timed out"],
-        ["サーバーに接続できません", "无法连接服务器", "Can't connect to the server"],
         ["接続を確認しています…", "正在检查连接…", "Checking connection…"],
         ["接続できました！レシートを読み取れます。", "连接成功！可以读取收据了。", "Connected! Receipt scanning is ready."],
         ["APIキーを入力してください。", "请输入 API 密钥。", "Enter an API key."],
@@ -232,7 +255,6 @@
         ["品目の合計とレシートの合計が一致しました", "品目合计与收据合计一致", "Item total matches the receipt total"],
         ["黄色で示した行の金額を確認してください。", "请确认黄色标注行的金额。", "Check the amounts in the highlighted rows."],
         ["明細と合計が一致しないことを確認しました", "我已确认明细与合计不一致", "I've reviewed the mismatch between items and total"],
-        ["今日はたくさん話したから、また明日ね。", "今天聊得够多啦，明天再聊吧。", "We've talked a lot today—let's chat again tomorrow."],
         ["明細と合計が一致していません。確認チェックを入れてから保存してください。", "明细与合计不一致。请勾选确认后再保存。", "Items and total don't match. Check the confirmation box before saving."],
         ["最後のバックアップから", "距离上次备份已经", "It has been"],
         ["日たちました。CSVを書き出しておくと安心です。", "天了。导出 CSV 备份会更安心。", "days since your last backup. Export a CSV to stay safe."],
@@ -377,7 +399,7 @@
         ["夏至", "夏至", "Summer solstice"],
         ["ペットと一緒に続ける家計簿アプリ", "和宠物一起坚持记账的家计应用", "A budget app you keep up with your pet"],
         ["うまく動かない操作がありました。続くときは再読み込みしてください", "有操作未能正常完成。如要继续，请重新加载页面。", "Something didn't work. Reload the page if you want to continue."],
-        ["予算を決めよう", "来定预算吧", "Set a budget"],
+        ["予算を決めよう", "先定个预算吧", "Set a budget"],
         ["過去3か月の平均から提案しました。金額は自由に直せます", "已根据过去 3 个月的平均值推荐，金额可以自由修改。", "Suggested from your 3-month average. Feel free to adjust it."],
         ["提案できるだけの記録がまだありません", "还没有足够的记录可以用来推荐。", "Not enough records to make a suggestion yet."],
         ["カテゴリ予算をクリアしました", "已清除分类预算", "Category budgets cleared"],
@@ -462,10 +484,31 @@
     var monthEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     var monthEnShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    var MAP = { zh: Object.create(null), en: Object.create(null) };
+    /* ---- 繁體中文（台湾）：簡体字の訳から自動変換する ----
+       ・ZHT_OVER … 語彙まで変わる文（保存→儲存、数据→資料 など）の手当て
+       ・S2T_SRC / S2T_DST … それ以外は 1 文字ずつ置き換える（動的に作る文もこれで変換） */
+    var S2T_SRC = "万与东严个为么乐买于亚亲仅从仓价优伙会余储儿兑关内决准减几击划删别刹务动励区医单历发变叠号后吗听响国图圆圣坏坚处备复够奖娱实宠对导将层币带并应开张强当录态总戏户扫护担拟拥择挚损换据摄摆攒数无时显暂机权条来标样检楼横樱欢欧汇没浅测浏渐游满点烟爱状独猫环现画疗盖着码确离种积称税笔筛简类红约纪纸线细经结给络绝继续编缩网胶节荐获虑见观视览觉计认议记设识诉词试话诞该语误说请读调谢败账货购贴费车软轻载较辑输边达过还这进连选采里钥钮钱铅银铺销错键长闭间阁阳际随隐难韩页顺预领题额饮麦黄齐";
+    var S2T_DST = "萬與東嚴個為麼樂買於亞親僅從倉價優夥會餘儲兒兌關內決準減幾擊劃刪別剎務動勵區醫單歷發變疊號後嗎聽響國圖圓聖壞堅處備復夠獎娛實寵對導將層幣帶並應開張強當錄態總戲戶掃護擔擬擁擇摯損換據攝擺攢數無時顯暫機權條來標樣檢樓橫櫻歡歐匯沒淺測瀏漸遊滿點煙愛狀獨貓環現畫療蓋著碼確離種積稱稅筆篩簡類紅約紀紙線細經結給絡絕繼續編縮網膠節薦獲慮見觀視覽覺計認議記設識訴詞試話誕該語誤說請讀調謝敗賬貨購貼費車軟輕載較輯輸邊達過還這進連選採裡鑰鈕錢鉛銀鋪銷錯鍵長閉間閣陽際隨隱難韓頁順預領題額飲麥黃齊";
+    var ZHT_OVER = {"保存": "儲存","尚未设置预算": "尚未設定預算","菜单": "選單","数据管理": "資料管理","分类设置": "分類設定","选择后立即切换。随时可以更改，不会影响已记录的数据。": "選擇後立即切換。隨時可以更改，不會影響已記錄的資料。","要重置所有数据吗？": "要重置所有資料嗎？","将删除预算、分类、支出记录和我的房间，恢复到最初状态。此操作无法撤销。（建议先用“导出 CSV”备份）": "將刪除預算、分類、支出記錄和我的房間，恢復到最初狀態。此操作無法撤銷。（建議先用“匯出 CSV”備份）","要重置本月数据吗？": "要重置本月資料嗎？","点击宠物，它会根据本月预算的余裕和你说话。爱心旁的数字是好感度，1 条记录 = 1 点，攒到 100 会发生好事哦！点击房间可以布置，用肉球按钮可以隐藏我的房间。积攒的点数可以在右上角菜单的商店和扭蛋里使用。": "點選寵物，它會根據本月預算的餘裕和你說話。愛心旁的數字是好感度，1 條記錄 = 1 點，攢到 100 會發生好事哦！點選房間可以佈置，用肉球按鈕可以隱藏我的房間。積攢的點數可以在右上角選單的商店和扭蛋裡使用。","备注（可选）": "備註（可選）","添加品目": "新增品目","轻松节省慢慢存": "輕鬆節省慢慢存","这是把收入的 100% 都存起来的计算。相当严格，建议把周期放长一些。": "這是把收入的 100% 都存起來的計算。相當嚴格，建議把週期放長一些。","添加新分类": "新增新分類","添加": "新增","设置本月每个分类可用的金额。留空的分类表示「不设置」。": "設定本月每個分類可用的金額。留空的分類表示「不設定」。","分类预算合计超过总预算也可以保存，超过时会以红色显示。": "分類預算合計超過總預算也可以儲存，超過時會以紅色顯示。","保存此内容": "儲存此內容","设置": "設定","振动（仅支持设备）": "振動（僅支援裝置）","把支出、预算、分类、存钱计划、我的房间（点数、宠物、家具、扭蛋）全部汇总到一个 CSV 导出。导入时除了这个 CSV，还会自动识别银行和信用卡账单的 CSV。（不包含收据照片和 API 密钥）": "把支出、預算、分類、存錢計劃、我的房間（點數、寵物、傢俱、扭蛋）全部彙總到一個 CSV 匯出。匯入時除了這個 CSV，還會自動識別銀行和信用卡賬單的 CSV。（不包含收據照片和 API 金鑰）","导出 CSV": "匯出 CSV","导入 CSV": "匯入 CSV","AI 设置（收据读取・宠物对话）": "AI 設定（收據讀取・寵物對話）","没有 API 密钥时，收据自动识别每天也能用几次（经由服务器。图片只为识别而发送给服务器和 Google，不会被保存）。填入自己的 API 密钥后可以不限次数使用，还能和宠物进行 AI 对话。密钥只保存在本机，不包含在本应用代码或 GitHub 中。只有使用时，收据图片或对话内容才会发送给你选择的服务商。": "沒有 API 金鑰時，收據自動識別每天也能用幾次（經由伺服器。圖片只為識別而傳送給伺服器和 Google，不會被儲存）。填入自己的 API 金鑰後可以不限次數使用，還能和寵物進行 AI 對話。金鑰只儲存在本機，不包含在本應用程式碼或 GitHub 中。只有使用時，收據圖片或對話內容才會傳送給你選擇的服務商。","其他（OpenAI 兼容端点）": "其他（OpenAI 相容端點）","API 密钥": "API 金鑰","连接测试": "連線測試","可以只清空本月的支出和预算，也可以清除全部数据恢复初始状态。此操作无法撤销，请注意。": "可以只清空本月的支出和預算，也可以清除全部資料恢復初始狀態。此操作無法撤銷，請注意。","重置本月数据": "重置本月資料","重置全部数据": "重置全部資料","登录奖励！": "登入獎勵！","领取登录点数吧": "領取登入點數吧","用登录和记账积攒的点数，可以获得新的伙伴和房间。": "用登入和記賬積攢的點數，可以獲得新的夥伴和房間。","只会出现还没有的东西（不重复）。每次": "只會出現還沒有的東西（不重複）。每次","点击已拥有的物品即可切换。": "點選已擁有的物品即可切換。","横向滑动查看整个房间，拖动可移动。": "橫向滑動檢視整個房間，拖動可移動。","发送": "傳送","关键词（备注・店铺・品目）": "關鍵詞（備註・店鋪・品目）","例：周末采购": "例：週末採購","粘贴到这里": "貼上到這裡","未设置": "未設定","没有按周的数据": "沒有按周的資料","没有可以和上月比较的数据": "沒有可以和上月比較的資料","这个月没有数据": "這個月沒有資料","正在输入的内容不会被保存。要关闭吗？": "正在輸入的內容不會被儲存。要關閉嗎？","请设置 1 日元以上的预算！": "請設定 1 日元以上的預算！","请先设置本月预算！": "請先設定本月預算！","设置已保存": "設定已儲存","保存失败": "儲存失敗","已设置：可以从收据读取": "已設定：可以從收據讀取","未设置：只能手动输入": "未設定：只能手動輸入","正在检查连接…": "正在檢查連線…","连接成功！可以读取收据了。": "連線成功！可以讀取收據了。","请输入 API 密钥。": "請輸入 API 金鑰。","请先在「数据管理」中设置 API 密钥。手动输入仍然可用。": "請先在「資料管理」中設定 API 金鑰。手動輸入仍然可用。","读取超时。请检查网络后重试。": "讀取超時。請檢查網路後重試。","无法通信。可能处于离线状态或连接受限。": "無法通訊。可能處於離線狀態或連線受限。","无法连接读取服务。请稍后再试。": "無法連線讀取服務。請稍後再試。","请确认黄色标注行的金额。": "請確認黃色標註行的金額。","明细与合计不一致。请勾选确认后再保存。": "明細與合計不一致。請勾選確認後再儲存。","天了。导出 CSV 备份会更安心。": "天了。匯出 CSV 備份會更安心。","还没有备份。导出 CSV 后，即使设备损坏也安心。": "還沒有備份。匯出 CSV 後，即使裝置損壞也安心。","来设置本月预算吧": "來設定本月預算吧","设置预算后，我就能告诉你还剩多少余裕啦": "設定預算後，我就能告訴你還剩多少餘裕啦","点上面的铅笔图标输入预算吧": "點上面的鉛筆圖示輸入預算吧","先来设置本月预算吧": "先來設定本月預算吧","没关系，从这里重新调整就好": "沒關係，從這裡重新調整就好","像素": "畫素","跟随设备设置（浅色/深色）": "跟隨裝置設定（淺色/深色）","可以通过扭蛋获得": "可以透過扭蛋獲得","打开数据管理": "開啟資料管理","① 先设置本月预算": "① 先設定本月預算","背景会叠加在房间壁纸上，已选择的房间不会改变。": "背景會疊加在房間桌布上，已選擇的房間不會改變。","黄金周": "黃金週","有操作未能正常完成。如要继续，请重新加载页面。": "有操作未能正常完成。如要繼續，請重新載入頁面。","已取消导入。": "已取消匯入。","已导入汇总 CSV，但没有新增数据。": "已匯入彙總 CSV，但沒有新增資料。","文件读取失败。": "檔案讀取失敗。","没有可导入的数据。": "沒有可匯入的資料。","初始化完成！（预算尚未设置，请自行决定／点数：8,888）": "初始化完成！（預算尚未設定，請自行決定／點數：8,888）","点击这里／向上滑动房间即可恢复": "點選這裡／向上滑動房間即可恢復","没有文件。": "沒有檔案。","无法读取文件。": "無法讀取檔案。","当前环境无法保存图片。": "當前環境無法儲存圖片。","无法打开图片保存位置。": "無法開啟圖片儲存位置。","无法保存图片。": "無法儲存圖片。","API 密钥不正确或没有权限。": "API 金鑰不正確或沒有許可權。","服务器发生错误。请稍后再试。": "伺服器發生錯誤。請稍後再試。","尚未设置 API 密钥。": "尚未設定 API 金鑰。","点击上方预算框里的铅笔图标，输入本月可以花的金额。超过预算 80% 时，进度条会变红，宠物会担心哦。": "點選上方預算框裡的鉛筆圖示，輸入本月可以花的金額。超過預算 80% 時，進度條會變紅，寵物會擔心哦。","点击宠物，它会根据本月预算的余裕和你说话。也可以从下方输入框和它聊天。积攒的点数可以在右上角菜单的商店和扭蛋中使用。": "點選寵物，它會根據本月預算的餘裕和你說話。也可以從下方輸入框和它聊天。積攢的點數可以在右上角選單的商店和扭蛋中使用。","数据只保存在本机。为了换机或以防万一，请从菜单的「数据管理」导出 CSV 保存。房间向下拉会缩小。": "資料只儲存在本機。為了換機或以防萬一，請從選單的「資料管理」匯出 CSV 儲存。房間向下拉會縮小。","这个 CSV 包含我的房间（点数、家具、宠物）数据。": "這個 CSV 包含我的房間（點數、傢俱、寵物）資料。","导入后，当前的我的房间会被 CSV 的内容替换。": "匯入後，當前的我的房間會被 CSV 的內容替換。","将删除所有数据（预算、分类、支出历史、我的房间）并恢复初始状态。此操作无法撤销。确定吗？": "將刪除所有資料（預算、分類、支出歷史、我的房間）並恢復初始狀態。此操作無法撤銷。確定嗎？","（OCR 的 API 密钥、账户设置、登录状态会保留）": "（OCR 的 API 金鑰、賬戶設定、登入狀態會保留）","无法保存数据。": "無法儲存資料。","可能是浏览器存储空间已满，或处于隐私模式。": "可能是瀏覽器儲存空間已滿，或處於隱私模式。","建议在「数据管理」中导出 CSV 备份。": "建議在「資料管理」中匯出 CSV 備份。"};
+    ZHT_OVER["詳細"] = "詳情";
+    var S2T_MAP = Object.create(null);
+    for (var si = 0; si < S2T_SRC.length; si++) S2T_MAP[S2T_SRC.charAt(si)] = S2T_DST.charAt(si);
+    function toTrad(text) {
+        text = String(text);
+        if (ZHT_OVER[text] !== undefined) return ZHT_OVER[text];
+        var out = "";
+        for (var ci = 0; ci < text.length; ci++) {
+            var ch = text.charAt(ci);
+            out += S2T_MAP[ch] || ch;
+        }
+        return out;
+    }
+
+    var MAP = { zh: Object.create(null), zht: Object.create(null), en: Object.create(null) };
     ENTRIES.forEach(function (row) {
         var ja = row[0], zh = row[1], en = row[2];
         MAP.zh[normalize(ja)] = zh;
+        MAP.zht[normalize(ja)] = toTrad(zh);
         MAP.en[normalize(ja)] = en;
     });
 
@@ -487,6 +530,7 @@
             [/^(\d{4})年(\d{1,2})月$/, function (m) { return m[1] + "年" + parseInt(m[2], 10) + "月"; }],
             [/^(\d{4})年(\d{1,2})月(\d{1,2})日$/, function (m) { return m[1] + "年" + parseInt(m[2], 10) + "月" + parseInt(m[3], 10) + "日"; }],
             [/^(.+)の(予算|内訳|余裕|グラフ|カテゴリ予算)$/, function (m, lang) { return translateRaw(m[1], lang) + SUFFIX_ZH[m[2]]; }],
+            [/^(.+)の支出と予算（カテゴリ別予算を含む）をすべて削除します。$/, function (m, lang) { return "将删除" + translateRaw(m[1], lang) + "的支出和预算（含分类预算）。"; }],
             [/^(.+)の支出はまだ記録されていません$/, function (m, lang) { return translateRaw(m[1], lang) + "还没有支出记录"; }],
             [/^(.+)の支出は記録されていません$/, function (m, lang) { return translateRaw(m[1], lang) + "没有支出记录"; }],
             [/^(.+)の支出はありません$/, function (m, lang) { return translateRaw(m[1], lang) + "没有支出"; }],
@@ -528,6 +572,7 @@
             [/^品目の合計（([\d,]+)円）とレシートの合計（([\d,]+)円）が ([\d,]+)円 違います。読み取り漏れの可能性があります。$/, function (m) { return "品目合计（¥" + m[1] + "）与收据合计（¥" + m[2] + "）相差 ¥" + m[3] + "。可能漏读。"; }]
         ],
         en: [
+            [/^(.+)の支出と予算（カテゴリ別予算を含む）をすべて削除します。$/, function (m, lang) { return "This deletes the expenses and budget (including category budgets) for " + translateRaw(m[1], lang) + "."; }],
             [/^(.+)、今日からよろしく(にゃ～|ぴょん|わん|ちゅー|もふ)$/, function (m) { return m[1] + ", nice to meet you!"; }],
             [/^(.+)、今日からよろしく$/, function (m) { return m[1] + ", nice to meet you!"; }],
             [/^(.+?)(にゃ～|ぴょん|わん|ちゅー|もふ)$/, function (m, lang) {
@@ -582,6 +627,10 @@
             [/^品目の合計（([\d,]+)円）とレシートの合計（([\d,]+)円）が ([\d,]+)円 違います。読み取り漏れの可能性があります。$/, function (m) { return "Item total (¥" + m[1] + ") and receipt total (¥" + m[2] + ") differ by ¥" + m[3] + ". Some items may be missing."; }]
         ]
     };
+    // 繁體中文の規則は、簡体字の規則の結果を変換して使う
+    RULES.zht = RULES.zh.map(function (rule) {
+        return [rule[0], function (m) { return toTrad(rule[1](m, "zh")); }];
+    });
 
     var textRecords = new WeakMap();
     var attrRecords = new WeakMap();
@@ -620,7 +669,7 @@
         var list = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ""];
         for (var i = 0; i < list.length; i++) {
             var code = String(list[i] || "").toLowerCase();
-            if (code.indexOf("zh") === 0) return "zh";
+            if (code.indexOf("zh") === 0) return /^zh[-_](tw|hk|mo|hant)/.test(code) ? "zht" : "zh";
             if (code.indexOf("en") === 0) return "en";
             if (code.indexOf("ja") === 0) return "ja";
         }
@@ -835,15 +884,32 @@
         if (meta) translateAttribute(meta, "content");
     }
 
+    // 言語ごとの Google Fonts。選んだ言語のものだけ読み込む（CSS 側の font-family は themes.css の data-lang で切り替え）
+    var FONT_URLS = {
+        en: "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap",
+        zh: "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap",
+        zht: "https://fonts.googleapis.com/css2?family=Huninn&display=swap"
+    };
+    function ensureLanguageFont(lang) {
+        var url = FONT_URLS[lang];
+        if (!url || document.getElementById("lang-font-" + lang)) return;
+        var link = document.createElement("link");
+        link.id = "lang-font-" + lang;
+        link.rel = "stylesheet";
+        link.href = url;
+        document.head.appendChild(link);
+    }
+
     function applyLanguage(lang, opts) {
         if (!LANGS.some(function (l) { return l.id === lang; })) lang = "ja";
         current = lang;
         if (!(opts && opts.noSave)) {
             try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
         }
-        var htmlLang = lang === "zh" ? "zh-CN" : lang;
+        var htmlLang = lang === "zh" ? "zh-CN" : (lang === "zht" ? "zh-TW" : lang);
         document.documentElement.setAttribute("lang", htmlLang);
         document.documentElement.setAttribute("data-lang", lang);
+        ensureLanguageFont(lang);
 
         applying = true;
         try {
@@ -875,7 +941,7 @@
             b.setAttribute("aria-pressed", lang.id === cur ? "true" : "false");
             var badge = document.createElement("span");
             badge.className = "language-badge";
-            badge.textContent = lang.id === "ja" ? "あ" : (lang.id === "zh" ? "中" : "A");
+            badge.textContent = lang.id === "ja" ? "あ" : (lang.id === "zh" ? "中" : (lang.id === "zht" ? "繁" : "A"));
             var tx = document.createElement("span");
             tx.className = "theme-text";
             var n = document.createElement("span");
@@ -996,4 +1062,3 @@
         boot();
     }
 })();
-

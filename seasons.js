@@ -13,6 +13,8 @@
         { id: "jp", label: "日本", tz: /^Asia\/Tokyo$/ },
         { id: "kr", label: "韓国", tz: /^Asia\/Seoul$/ },
         { id: "cn", label: "中国", tz: /^Asia\/(Shanghai|Chongqing|Harbin|Urumqi)/ },
+        // 北米（アメリカ・カナダ）だけを us にする。南米は南半球として au の季節ルールを使う
+        { id: "sa", label: "南米（南半球）", tz: /^America\/(Sao_Paulo|Argentina\/|Buenos_Aires|Santiago|Montevideo|Asuncion|Lima|La_Paz|Bahia|Fortaleza|Recife|Manaus|Cuiaba|Campo_Grande|Belem|Maceio|Araguaina|Punta_Arenas)/ },
         { id: "us", label: "アメリカ", tz: /^America\// },
         { id: "eu", label: "ヨーロッパ", tz: /^Europe\// },
         { id: "au", label: "オーストラリア（南半球）", tz: /^Australia\// }
@@ -58,7 +60,7 @@
     }
 
     function loadConfig() {
-        var cfg = { enabled: true, region: detectRegion() };
+        var cfg = { enabled: false, region: detectRegion() };
         try {
             var raw = JSON.parse(localStorage.getItem(KEY) || "null");
             if (raw && typeof raw === "object") {
@@ -213,7 +215,7 @@
 
     function seasonOf(d, region) {
         var m = d.getMonth() + 1;
-        var south = region === "au";
+        var south = region === "au" || region === "sa";
         if (m >= 3 && m <= 5) return south ? "autumn" : "spring";
         if (m >= 6 && m <= 8) return south ? "winter" : "summer";
         if (m >= 9 && m <= 11) return south ? "spring" : "autumn";
@@ -248,14 +250,14 @@
             inRange(d, 12, 29, 1, 3));
 
         // クリスマス（12/1〜12/25）
-        if (region === "au") {
+        if (region === "au" || region === "sa") {
             add("christmas", "南半球のクリスマス", "christmas_summer", inRange(d, 12, 1, 12, 25));
         } else {
             add("christmas", "クリスマス", "christmas", inRange(d, 12, 1, 12, 25));
         }
 
         // イースター（米・欧・豪）
-        if (region === "us" || region === "eu" || region === "au") {
+        if (region === "us" || region === "eu" || region === "au" || region === "sa") {
             add("easter", "イースター", "easter", withinDays(d, easter, 2, 1));
         }
 
@@ -507,7 +509,7 @@
             badge.className = "season-badge";
             badge.setAttribute("data-i18n-skip", "1");
             badge.addEventListener("click", openModal);
-            titleBar.insertBefore(badge, titleBar.querySelector(".room-edit-btn"));
+            titleBar.insertBefore(badge, titleBar.querySelector(".affinity-pill") || titleBar.querySelector(".room-hide-btn"));
         }
 
         var auto = document.getElementById("season-auto");

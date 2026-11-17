@@ -185,3 +185,10 @@ html[data-lang="en"] .more-item{font-size:.92rem}
 html[data-lang="en"] .season-badge{font-size:.64rem}
 html[data-lang="en"] #modal-season .field-hint{font-size:.72rem}
 
+/* ===== 言語ごとのフォント（i18n.js が選んだ言語のフォントを読み込む）=====
+   日本語：M PLUS Rounded 1c ／ 英語・ベトナム語：Nunito（丸くてかわいい）
+   簡体字：Noto Sans SC ／ 繁體字：Huninn（粉圓） */
+html[data-lang="en"], html[data-lang="vi"] { --font-main: 'Nunito', 'M PLUS Rounded 1c', sans-serif; }
+html[data-lang="zh"] { --font-main: 'Noto Sans SC', 'M PLUS Rounded 1c', sans-serif; }
+html[data-lang="zht"] { --font-main: 'Huninn', 'Noto Sans TC', 'M PLUS Rounded 1c', sans-serif; }
+html[data-lang="zht"] .more-item { font-size: .95rem; }

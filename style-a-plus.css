@@ -1,0 +1,46 @@
+/* v3.8 A+B compatibility layer: A main screen, B features in menu */
+
+/* A does not show the "this month's room" eyebrow above the budget. */
+.budget-hero-label { display: none; }
+
+/* A has no empty category-summary paragraph; B's empty <p> adds 3px to the card. */
+.budget-category-summary:empty { display: none; }
+
+/* Keep these features, but move their triggers into the menu. */
+#btn-open-category-budget,
+#btn-toggle-filter { display: none !important; }
+
+/* A places the affinity badge at the room's top-left, not as a floating right pill. */
+.room-affinity-float {
+    left: 9px;
+    top: 10px;
+    right: auto;
+}
+.room-affinity-float .affinity-box {
+    flex-basis: 118px;
+    min-width: 106px;
+    height: 22px;
+    padding: 3px 9px 3px 6px;
+    gap: 5px;
+    font-size: 12px;
+}
+.room-affinity-float .affinity-heart { font-size: 13px; }
+.room-affinity-float .affinity-track { height: 5px; min-width: 24px; }
+.room-affinity-float .affinity-score {
+    font-size: 11px;
+    min-width: 3.6ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* A's room is a plain preview; B's dialogue box remains available but should not
+   dominate the A-style visual. It is hidden only when empty via JS class later. */
+.room-dialogue-box { display: none; }
+
+/* A's record section has no filter button; the filter panel is opened from the menu. */
+.filter-panel { margin-top: 8px; }
+
+@media (max-width: 400px) {
+    .room-affinity-float { left: 9px; top: 10px; right: auto; }
+    .room-affinity-float .affinity-box { flex-basis: 118px; min-width: 106px; }
+}
